@@ -78,7 +78,7 @@ def test_InfoMessage():
         'Потрачено ккал: 6.000.'
      ),
 ])
-def test_InfoMessage_get_message(input_data, expected):
+def  test_InfoMessage_get_message(input_data, expected):
     info_message = homework.InfoMessage(*input_data)
     assert hasattr(info_message, 'get_message'), (
         'Создайте метод `get_message` в классе `InfoMessage`.'
