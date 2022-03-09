@@ -15,6 +15,7 @@
     - Среднюю скорость на дистанции, в км/ч.
     - Расход энергии, в килокалориях.
 """
+import numbers
 from dataclasses import dataclass
 from typing import List
 
@@ -72,7 +73,7 @@ class Training:
 
         # Ошибка когда производные методы перезаписывают оригинальный.
         raise NotImplementedError(f"{self.__class__.__name__} "
-                                  f"get_spent_calories")
+                                  "get_spent_calories")
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
@@ -85,15 +86,15 @@ class Training:
 class Running(Training):
     """Тренировка: бег."""
 
-    COEFF_CALORIE_1: int = 18  # Коэффициенты для расчёта формулы.
-    COEFF_CALORIE_2: int = 20
+    MULTIPLIER: int = 18  # Коэффициенты для расчёта формулы.
+    SUBTRACTOR: int = 20
     MINUTE_PER_HOUR: int = 60  # Переменная для перевода часов в минуты.
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
 
-        return ((self.COEFF_CALORIE_1 * self.get_mean_speed()
-                 - self.COEFF_CALORIE_2) * self.weight
+        return ((self.MULTIPLIER * self.get_mean_speed()
+                 - self.SUBTRACTOR) * self.weight
                 / self.M_IN_KM * (self.duration * self.MINUTE_PER_HOUR))
 
 
@@ -101,8 +102,8 @@ class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
 
     DEGREE: int = 2  # Степень для формулы get_spent_calories().
-    COEFF_CALORIE_1: float = 0.035  # Коэффициенты для расчёта формулы.
-    COEFF_CALORIE_2: float = 0.029
+    MULTIPLIER: float = 0.035  # Коэффициенты для расчёта формулы.
+    MULTIPLIER_2: float = 0.029
     MINUTE_PER_HOUR: int = 60  # Переменная для перевода часов в минуты.
 
     def __init__(self,
@@ -116,9 +117,9 @@ class SportsWalking(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
 
-        return ((self.COEFF_CALORIE_1 * self.weight
+        return ((self.MULTIPLIER * self.weight
                  + (pow(self.get_mean_speed(), self.DEGREE) // self.height)
-                 * self.COEFF_CALORIE_2 * self.weight)
+                 * self.MULTIPLIER_2 * self.weight)
                 * (self.duration * self.MINUTE_PER_HOUR))
 
 
@@ -127,8 +128,8 @@ class Swimming(Training):
 
     # Расстояние, которое спортсмен преодолевает за один гребок.
     LEN_STEP: float = 1.38
-    COEFF_CALORIE_1: float = 1.1  # Коэффициенты для расчёта формулы.
-    COEFF_CALORIE_2: int = 2
+    MULTIPLIER: float = 1.1  # Коэффициенты для расчёта формулы.
+    MULTIPLIER_2: int = 2
 
     def __init__(self,
                  action: int,
@@ -149,8 +150,8 @@ class Swimming(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
 
-        return ((self.get_mean_speed() + self.COEFF_CALORIE_1)
-                * self.COEFF_CALORIE_2 * self.weight)
+        return ((self.get_mean_speed() + self.MULTIPLIER)
+                * self.MULTIPLIER_2 * self.weight)
 
 
 def read_package(workout_type: str, data: List[int]) -> Training:
@@ -161,11 +162,14 @@ def read_package(workout_type: str, data: List[int]) -> Training:
         "WLK": SportsWalking
     }
 
-    for item in data:
-        if type(item) != int:
-            raise ValueError("Получен неккоректный тип данных")
-
-    return obj_code_data[workout_type](*data)
+    # Проверка на число, а так же корректный тип тренировки.
+    if all([isinstance(i, numbers.Number) for i in data]):
+        try:
+            return obj_code_data[workout_type](*data)
+        except KeyError:
+            print("Получен неккоректный вид упражнений!")
+    else:
+        raise ValueError("Получен неккоректный тип данных!")
 
 
 def main(exercise: Training) -> None:
