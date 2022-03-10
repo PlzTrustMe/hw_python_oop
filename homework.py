@@ -17,7 +17,7 @@
 """
 import numbers
 from dataclasses import dataclass
-from typing import List
+from typing import List, Type
 
 
 @dataclass
@@ -102,8 +102,8 @@ class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
 
     DEGREE: int = 2  # Степень для формулы get_spent_calories().
-    MULTIPLIER: float = 0.035  # Коэффициенты для расчёта формулы.
-    MULTIPLIER_2: float = 0.029
+    WEIGHT_MULTIPLIER: float = 0.035  # Коэффициенты для расчёта формулы.
+    SQUARE_OF_SPEED_MULTIPLIER: float = 0.029
     MINUTE_PER_HOUR: int = 60  # Переменная для перевода часов в минуты.
 
     def __init__(self,
@@ -117,9 +117,9 @@ class SportsWalking(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
 
-        return ((self.MULTIPLIER * self.weight
+        return ((self.WEIGHT_MULTIPLIER * self.weight
                  + (pow(self.get_mean_speed(), self.DEGREE) // self.height)
-                 * self.MULTIPLIER_2 * self.weight)
+                 * self.SQUARE_OF_SPEED_MULTIPLIER * self.weight)
                 * (self.duration * self.MINUTE_PER_HOUR))
 
 
@@ -128,8 +128,8 @@ class Swimming(Training):
 
     # Расстояние, которое спортсмен преодолевает за один гребок.
     LEN_STEP: float = 1.38
-    MULTIPLIER: float = 1.1  # Коэффициенты для расчёта формулы.
-    MULTIPLIER_2: int = 2
+    ADDENDUM: float = 1.1  # Слогаемое.
+    MULTIPLIER: int = 2  # Множитель.
 
     def __init__(self,
                  action: int,
@@ -150,26 +150,26 @@ class Swimming(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
 
-        return ((self.get_mean_speed() + self.MULTIPLIER)
-                * self.MULTIPLIER_2 * self.weight)
+        return ((self.get_mean_speed() + self.ADDENDUM)
+                * self.MULTIPLIER * self.weight)
 
 
 def read_package(workout_type: str, data: List[int]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    obj_code_data = {
+    obj_code_data: dict[str, Type[Swimming | Running | SportsWalking]] = {
         "SWM": Swimming,
         "RUN": Running,
         "WLK": SportsWalking
     }
 
     # Проверка на число, а так же корректный тип тренировки.
-    if all([isinstance(i, numbers.Number) for i in data]):
-        try:
+    if workout_type in obj_code_data:
+        if all([isinstance(_, numbers.Number) for _ in data]):
             return obj_code_data[workout_type](*data)
-        except KeyError:
-            print("Получен неккоректный вид упражнений!")
+        else:
+            raise ValueError("Получен неккоректный тип данных!")
     else:
-        raise ValueError("Получен неккоректный тип данных!")
+        raise AttributeError("Получен неккоректный тип тренировки!")
 
 
 def main(exercise: Training) -> None:
