@@ -17,7 +17,7 @@
 """
 import numbers
 from dataclasses import dataclass
-from typing import List, Type
+from typing import Dict, List, Type
 
 
 @dataclass
@@ -156,20 +156,18 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: List[int]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    obj_code_data: dict[str, Type[Swimming | Running | SportsWalking]] = {
+    obj_code_data: Dict[str, Type[Training]] = {
         "SWM": Swimming,
         "RUN": Running,
         "WLK": SportsWalking
     }
 
     # Проверка на число, а так же корректный тип тренировки.
-    if workout_type in obj_code_data:
-        if all([isinstance(_, numbers.Number) for _ in data]):
-            return obj_code_data[workout_type](*data)
-        else:
-            raise ValueError("Получен неккоректный тип данных!")
+    if workout_type in obj_code_data and all(
+            [isinstance(_, numbers.Number) for _ in data]):
+        return obj_code_data[workout_type](*data)
     else:
-        raise AttributeError("Получен неккоректный тип тренировки!")
+        raise ValueError("Полученый тип или данные неккоректны!")
 
 
 def main(exercise: Training) -> None:
