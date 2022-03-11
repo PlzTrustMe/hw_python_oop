@@ -166,8 +166,8 @@ def read_package(workout_type: str, data: List[int]) -> Training:
     if workout_type in obj_code_data and all(
             [isinstance(_, numbers.Number) for _ in data]):
         return obj_code_data[workout_type](*data)
-    else:
-        raise ValueError("Полученый тип или данные неккоректны!")
+
+    raise ValueError("Полученый тип или данные неккоректны!")
 
 
 def main(exercise: Training) -> None:
